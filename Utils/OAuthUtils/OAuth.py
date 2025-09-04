@@ -1,8 +1,8 @@
-
+from __future__ import annotations
 
 from base64 import urlsafe_b64encode
+from dataclasses import dataclass
 from hashlib import sha256
-import re
 import webbrowser
 
 import requests
@@ -14,8 +14,12 @@ from Utils.StringUtils import StringUtils
 
 
 class OAuth():
-    class OAuthToken():
-        key: str
+    @dataclass
+    class Token():
+        token_type: str
+        expires_in: int
+        access_token: str
+        refresh_token: str
     
     @staticmethod
     def base64_url(input: str) -> str:
@@ -23,13 +27,13 @@ class OAuth():
         value = urlsafe_b64encode(digest).decode('utf-8')
         return value.rstrip('=')
     
-    @staticmethod
-    def authenticate_user() -> OAuthToken | None:
+    @classmethod
+    def authenticate_user(cls) -> Token | None:
         server, thread = OAuthHandler.start_listening()
 
         verifier = StringUtils.generate_string(64)
 
-        OAuth.generate_code(verifier)
+        cls.generate_code(verifier)
 
         thread.join()
 
@@ -37,7 +41,7 @@ class OAuth():
         if not code:
             return None
 
-        return OAuth.get_token(verifier, code)
+        return cls.get_token(verifier, code)
 
     @staticmethod
     def generate_code(verifier: str) -> None:
@@ -57,7 +61,7 @@ class OAuth():
 
 
     @staticmethod
-    def get_token(verifier: str, code: str):
+    def get_token(verifier: str, code: str) -> OAuth.Token | None:
         data = {
             "grant_type": "authorization_code",
             "client_id": Config.CLIENT_ID,
@@ -66,6 +70,9 @@ class OAuth():
             "code_verifier": verifier
         }
 
-        response = requests.post(f"{Config.ITAD_URI}/oauth/token/", json=data)
+        response = requests.post(f"{Config.ITAD_URI}/oauth/token/", data=data)
 
-        print(response)
+        try:
+            return OAuth.Token(response.json())
+        except:
+            return None

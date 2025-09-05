@@ -1,3 +1,3 @@
-from .API import IsThereAnyDeal as IsThereAnyDeal
-from .Config import Config as Config
-from .SteamGame import SteamGame as SteamGame
+from .API import IsThereAnyDeal
+from .Config import Config
+from .SteamGame import SteamGame

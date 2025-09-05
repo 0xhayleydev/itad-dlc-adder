@@ -1,1 +1,1 @@
-from .ResponseError import ResponseError as ResponseError
+from .ResponseError import ResponseError

@@ -1,9 +1,8 @@
-import random
-import string
-import requests
 import json
 
-from Exceptions import ResponseException
+import requests
+
+from Exceptions.ResponseError import ResponseError
 from IsThereAnyDeal.Config import Config
 from IsThereAnyDeal.SteamGame import SteamGame
 from Utils.Cache import Cache
@@ -12,18 +11,22 @@ from Utils.Cache import Cache
 class IsThereAnyDeal():
     @staticmethod
     def get_game(steam_app_id: str) -> SteamGame:
-        url = f"https://api.isthereanydeal.com/games/lookup/v1?key={Config.API_KEY}&appid={steam_app_id}"
+        url = f"{Config.ITAD_API_URI}/games/lookup/v1?key={Config.API_KEY}&appid={steam_app_id}"
 
-        steam_game = Cache.game_cache.get(url)
+        steam_game = Cache.get_game(url)
 
         if not steam_game:
-            response = requests.get(url)
+            response = requests.get(url, timeout=60)
 
             if not response.status_code == 200:
-                raise ResponseException(f"Could not find app with id: {steam_app_id}")
-            
+                raise ResponseError(f"Could not find app with id: {steam_app_id}")
+
             steam_game = SteamGame.from_dict(json.loads(response.content))
-            
-            Cache.game_cache[url] = steam_game
-        
+
+            Cache.add_game(url, steam_game)
+
         return steam_game
+
+    @staticmethod
+    def get_dlc(steam_app_id: str) -> SteamGame | None:
+        pass

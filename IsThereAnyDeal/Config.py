@@ -1,4 +1,12 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+
 class Config():
+    _config: Config | None = None
+
     CLIENT_ID = ""
     CLIENT_SECRET = ""
     API_KEY = ""
@@ -20,3 +28,21 @@ class Config():
 
     ITAD_URI = "https://isthereanydeal.com"
     ITAD_API_URI = "https://api.isthereanydeal.com"
+
+    @classmethod
+    def load(cls, config_file: Path) -> Config | None:
+        if not cls._config:
+            cls.reload(config_file)
+
+        return cls._config
+
+    @classmethod
+    def reload(cls, config_file: Path) -> Config:
+        with open(config_file, encoding="utf-8") as file:
+            data = dict(json.loads(file.read()))
+            cls.CLIENT_ID = str(data.get("client_id"))
+            cls.CLIENT_SECRET = str(data.get("client_secret"))
+            cls.API_KEY = str(data.get("api_key"))
+            cls._config = cls()
+
+        return cls._config

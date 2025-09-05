@@ -1,0 +1,3 @@
+
+class ResponseError(Exception):
+    pass
